@@ -12,6 +12,7 @@ from ..crud.task import (
     move_task,
     update_task,
     delete_task,
+    bulk_delete_tasks,
     # swap_task_positions, 
 )
 
@@ -48,12 +49,22 @@ def update_existing_task(task_id: int, task: TaskUpdate, db: Session = Depends(g
     return db_task
 
 
-@router.delete("/{task_id}", status_code=200)
+@router.delete("/bulk", status_code=200)
+def delete_multiple_tasks(task_ids: List[int], db: Session = Depends(get_db)):
+   
+    result = bulk_delete_tasks(db, task_ids)
+    if result["count"] == 0:
+        raise HTTPException(status_code=404, detail="No tasks found for given IDs")
+    return {"message": f"{result["count"]} Tasks deleted successfully"}
+
+
+@router.delete("/delete/{task_id}", status_code=200)
 def delete_existing_task(task_id: int, db: Session = Depends(get_db)):
     db_task = delete_task(db, task_id)
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     return {"message": f"Task {task_id} deleted successfully"}
+
 
 
 @router.get("/tasks/filter", response_model=List[TaskRead])
@@ -67,10 +78,7 @@ def filter_tasks(status: str, db: Session = Depends(get_db)):
 
 @router.put("/tasks/{task_id}/move", response_model=TaskRead)
 def move_task_route(task_id: int, new_position: int, db: Session = Depends(get_db)):
-    """
-    Move a task to a new position in the list.
-    Adjusts other tasks accordingly.
-    """
+    
     return move_task(db, task_id, new_position)
 
 # NEW ENDPOINT: Swap positions of two tasks

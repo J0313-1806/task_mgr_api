@@ -3,6 +3,7 @@ from sqlalchemy import func
 from ..models.task import Task, TaskStatus
 from ..schemas.task import TaskCreate, TaskUpdate, TaskSwap
 from fastapi import HTTPException
+from typing import List
 
 
 def get_tasks(db: Session, skip: int = 0, limit: int = 100):
@@ -94,6 +95,24 @@ def delete_task(db: Session, task_id: int):
     )
     db.commit()
     return db_task
+
+
+def bulk_delete_tasks(db: Session, task_ids: List[int]):
+    
+    tasks = db.query(Task).filter(Task.id.in_(task_ids)).all()
+    if not tasks:
+        raise HTTPException(status_code=404, detail="No tasks found for given IDs")
+
+    for task in tasks:
+        db.delete(task)
+    db.commit()
+
+    remaining_tasks = db.query(Task).order_by(Task.position.asc()).all()
+    for idx, task in enumerate(remaining_tasks):  
+          setattr(task, "position", idx) 
+    db.commit()
+
+    return {"deleted_ids": task_ids, "count": len(tasks)}
 
 
 def get_tasks_by_status(db: Session, status_value: str):
