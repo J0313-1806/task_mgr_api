@@ -96,6 +96,11 @@ def delete_task(db: Session, task_id: int):
     return db_task
 
 
+def get_tasks_by_status(db: Session, status_value: str):
+ 
+    return db.query(Task).order_by(Task.position.asc()).filter(Task.status == status_value).all()
+
+
 def move_task(db: Session, task_id: int, new_position: int):
     task = get_task(db, task_id)
     if not task:
@@ -122,7 +127,7 @@ def move_task(db: Session, task_id: int, new_position: int):
     return task
 
 
-# NEW: Swap positions of two tasks
+# Swap positions of two tasks
 # def swap_task_positions(db: Session, task1_id: int, task2_id: int):
 #     task1 = get_task(db, task1_id)
 #     task2 = get_task(db, task2_id)

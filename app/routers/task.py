@@ -8,10 +8,11 @@ from ..crud.task import (
     get_tasks,
     get_task,
     create_task,
+    get_tasks_by_status,
     move_task,
     update_task,
     delete_task,
-    # swap_task_positions,   # NEW
+    # swap_task_positions, 
 )
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -53,6 +54,16 @@ def delete_existing_task(task_id: int, db: Session = Depends(get_db)):
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     return {"message": f"Task {task_id} deleted successfully"}
+
+
+@router.get("/tasks/filter", response_model=List[TaskRead])
+def filter_tasks(status: str, db: Session = Depends(get_db)):
+   
+    db_task = get_tasks_by_status(db, status)
+    if not db_task:
+        raise HTTPException(status_code=404, detail=f"No tasks found with status '{status}'")
+    return db_task
+
 
 @router.put("/tasks/{task_id}/move", response_model=TaskRead)
 def move_task_route(task_id: int, new_position: int, db: Session = Depends(get_db)):
