@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
-
+from typing import List, Optional
+from datetime import date
 from ..database import get_db
 from ..schemas.task import TaskCreate, TaskUpdate, TaskRead, TaskSwap
 from ..crud.task import (
@@ -13,13 +13,14 @@ from ..crud.task import (
     update_task,
     delete_task,
     bulk_delete_tasks,
+    search_tasks,
     # swap_task_positions, 
 )
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-@router.post("/", response_model=TaskRead, status_code=201)
+@router.post("/add", response_model=TaskRead, status_code=201)
 def create_new_task(task: TaskCreate, db: Session = Depends(get_db)):
     return create_task(db, task)
 
@@ -66,7 +67,6 @@ def delete_existing_task(task_id: int, db: Session = Depends(get_db)):
     return {"message": f"Task {task_id} deleted successfully"}
 
 
-
 @router.get("/tasks/filter", response_model=List[TaskRead])
 def filter_tasks(status: str, db: Session = Depends(get_db)):
    
@@ -76,10 +76,34 @@ def filter_tasks(status: str, db: Session = Depends(get_db)):
     return db_task
 
 
-@router.put("/tasks/{task_id}/move", response_model=TaskRead)
+@router.put("/tasks/move/{task_id}", response_model=TaskRead)
 def move_task_route(task_id: int, new_position: int, db: Session = Depends(get_db)):
     
     return move_task(db, task_id, new_position)
+
+
+@router.get("/tasks/search", response_model=List[TaskRead])
+def search_tasks_endpoint(
+    task_id: Optional[int] = None,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    position: Optional[int] = None,
+    due_date: Optional[date] = None,
+    status: Optional[str] = None,
+    blocked_by_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+):
+    return search_tasks(
+        db,
+        task_id=task_id,
+        title=title,
+        description=description,
+        position=position,
+        due_date=due_date,
+        status=status,
+        blocked_by_id=blocked_by_id,
+    )
+
 
 # NEW ENDPOINT: Swap positions of two tasks
 # @router.post("/swap-positions", response_model=dict)

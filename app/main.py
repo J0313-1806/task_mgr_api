@@ -7,7 +7,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Task Management API",
-    description="Full CRUD backend for tasks with PostgreSQL, self-referential 'Blocked By' support, and status enum.",
+    description="Full CRUD backend for tasks with PostgreSQL.",
     version="1.0.0",
 )
 

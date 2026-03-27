@@ -3,7 +3,8 @@ from sqlalchemy import func
 from ..models.task import Task, TaskStatus
 from ..schemas.task import TaskCreate, TaskUpdate, TaskSwap
 from fastapi import HTTPException
-from typing import List
+from typing import List, Optional
+from datetime import date
 
 
 def get_tasks(db: Session, skip: int = 0, limit: int = 100):
@@ -145,6 +146,42 @@ def move_task(db: Session, task_id: int, new_position: int):
     db.refresh(task)
     return task
 
+
+def search_tasks(
+    db: Session,
+    task_id: Optional[int] = None,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    position: Optional[int] = None,
+    due_date: Optional[date] = None,
+    status: Optional[str] = None,
+    blocked_by_id: Optional[int] = None,
+) -> List[Task]:
+   
+    
+    query = db.query(Task)
+
+    if task_id is not None:
+        query = query.filter(Task.id == task_id)
+    if title is not None:
+        query = query.filter(Task.title.ilike(f"%{title}%"))
+    if description is not None:
+        query = query.filter(Task.description.ilike(f"%{description}%"))
+    if position is not None:
+        query = query.filter(Task.position == position)
+    if due_date is not None:
+        query = query.filter(Task.due_date == due_date)
+    if status is not None:
+        query = query.filter(Task.status == status)
+    if blocked_by_id is not None:
+        query = query.filter(Task.blocked_by_id == blocked_by_id)
+
+    results = query.order_by(Task.position.asc()).all()
+
+    if not results:
+        raise HTTPException(status_code=404, detail="No tasks found matching criteria")
+
+    return results
 
 # Swap positions of two tasks
 # def swap_task_positions(db: Session, task1_id: int, task2_id: int):
