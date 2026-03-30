@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..models.task import Task, TaskStatus
-from ..schemas.task import TaskCreate, TaskUpdate, TaskSwap
+from ..schemas.task import TaskCreate, TaskUpdate, TaskOrderRequest
 from fastapi import HTTPException
 from typing import List, Optional
 from datetime import date
@@ -68,6 +68,11 @@ def update_task(db: Session, task_id: int, task_in: TaskUpdate):
 
     for field, value in update_data.items():
         setattr(db_task, field, value)
+    
+    if "status" in update_data and update_data["status"] == TaskStatus.DONE:
+        blocked_tasks = db.query(Task).filter(Task.blocked_by_id == task_id).all()
+        for blocked in blocked_tasks:
+            setattr(blocked, "blocked_by_id", None)
 
     db.commit()
     db.refresh(db_task)
@@ -119,6 +124,18 @@ def bulk_delete_tasks(db: Session, task_ids: List[int]):
 def get_tasks_by_status(db: Session, status_value: str):
  
     return db.query(Task).order_by(Task.position.asc()).filter(Task.status == status_value).all()
+
+
+def reorder_tasks_in_db(db: Session, order_request: TaskOrderRequest):
+    for item in order_request.tasks:
+        task = db.query(Task).filter(Task.id == item.id).first()
+        if not task:
+            raise HTTPException(status_code=404, detail=f"Task {item.id} not found")
+
+        # task.position = item.position
+        setattr(task, "position", item.position)
+    db.commit()
+    return {"message": "Tasks reordered successfully"}
 
 
 def move_task(db: Session, task_id: int, new_position: int):

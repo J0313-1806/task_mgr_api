@@ -22,5 +22,4 @@ class Task(Base):
         ForeignKey("tasks.id", ondelete="SET NULL"),
         nullable=True,
     )
-    # NEW: Position for ordering / swapping
     position = Column(Integer, nullable=False, index=True)

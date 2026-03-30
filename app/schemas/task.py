@@ -3,6 +3,7 @@ from datetime import date
 from typing import Optional
 from enum import Enum as PyEnum
 from ..models.task import TaskStatus
+from typing import List
 
 class TaskBase(BaseModel):
     title: str
@@ -45,3 +46,11 @@ class TaskSwap(BaseModel):
     task_id2: int
 
     model_config = ConfigDict(from_attributes=True)
+    
+
+class TaskOrderUpdate(BaseModel):
+    id: int
+    position: int
+
+class TaskOrderRequest(BaseModel):
+    tasks: List[TaskOrderUpdate]

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import date
 from ..database import get_db
-from ..schemas.task import TaskCreate, TaskUpdate, TaskRead, TaskSwap
+from ..schemas.task import TaskCreate, TaskUpdate, TaskRead, TaskOrderRequest
 from ..crud.task import (
     get_tasks,
     get_task,
@@ -14,6 +14,7 @@ from ..crud.task import (
     delete_task,
     bulk_delete_tasks,
     search_tasks,
+    reorder_tasks_in_db,
     # swap_task_positions, 
 )
 
@@ -74,6 +75,11 @@ def filter_tasks(status: str, db: Session = Depends(get_db)):
     if not db_task:
         raise HTTPException(status_code=404, detail=f"No tasks found with status '{status}'")
     return db_task
+
+
+@router.put("/tasks/reorder")
+def reorder_tasks(order_request: TaskOrderRequest, db: Session = Depends(get_db)):
+    return reorder_tasks_in_db(db, order_request)
 
 
 @router.put("/tasks/move/{task_id}", response_model=TaskRead)
