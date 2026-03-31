@@ -34,10 +34,10 @@ This is the backend service for the Flutter Task Manager App. It provides RESTfu
    Run migrations (if using Alembic):
    ```bash
    alembic upgrade head
-4. **Run the server**
+5. **Run the server**
    ```bash
    uvicorn main:app --reload
-
+   ```
 
 
 ✨ Features
@@ -69,9 +69,8 @@ This is the backend service for the Flutter Task Manager App. It provides RESTfu
 📱 Usage
 
     Start the backend server:
-    ```bash
     uvicorn main:app --reload
-    ```
+    
     Access API docs at:
         Swagger UI: http://127.0.0.1:8000/docs
         ReDoc: http://127.0.0.1:8000/redoc
